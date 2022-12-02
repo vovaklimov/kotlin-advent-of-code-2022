@@ -6,66 +6,65 @@ enum class Outcome(val score: Int) {
     Loose(0)
 }
 
+const val Rock = "Rock"
+const val Paper = "Paper"
+const val Scissors = "Scissors"
+
+data class Move(val name: String, val win: String, val lose: String)
+
+val inputToMove = mapOf(
+    "A" to Move(name = Rock, win = Scissors, lose = Paper),
+    "B" to Move(name = Paper, win = Rock, lose = Scissors),
+    "C" to Move(name = Scissors, win = Paper, lose = Rock),
+    "X" to Move(name = Rock, win = Scissors, lose = Paper),
+    "Y" to Move(name = Paper, win = Rock, lose = Scissors),
+    "Z" to Move(name = Scissors, win = Paper, lose = Rock),
+)
+
+val scores = mapOf(
+    Rock to 1,
+    Paper to 2,
+    Scissors to 3,
+)
+
 fun part1(input: List<List<String>>): Int {
-    val wins = mapOf(
-        "A" to "Z",
-        "C" to "Y",
-        "B" to "X",
-    )
+    return input.fold(0) { score, (opponentInput, myInput) ->
+        val opponentMove = inputToMove.getOrElse(opponentInput) {
+            throw RuntimeException("Invalid input $opponentInput")
+        }
 
-    val draws = mapOf(
-        "A" to "X",
-        "B" to "Y",
-        "C" to "Z",
-    )
+        val myMove = inputToMove.getOrElse(myInput) {
+            throw RuntimeException("Invalid input $myInput")
+        }
 
-    val scores = mapOf(
-        "X" to 1,
-        "Y" to 2,
-        "Z" to 3,
-    )
+        val myMoveScore = scores.getOrDefault(myMove.name, 0)
 
-    return input.fold(0) { score, (opponentMove, myMove) ->
-        score + when {
-            wins[opponentMove]?.contains(myMove) == true -> Outcome.Loose.score
-            draws[opponentMove]?.contains(myMove) == true -> Outcome.Draw.score
+        score + myMoveScore + when {
+            opponentMove.name == myMove.name -> Outcome.Draw.score
+            opponentMove.win == myMove.name -> Outcome.Loose.score
             else -> Outcome.Win.score
-        } + scores.getOrDefault(myMove, 0)
+        }
     }
 }
 
 fun part2(input: List<List<String>>): Int {
-    val wins = mapOf(
-        "A" to "C",
-        "C" to "B",
-        "B" to "A",
-    )
+    return input.fold(0) { score, (opponentInput, result) ->
+        val opponentMove = inputToMove.getOrElse(opponentInput) {
+            throw RuntimeException("Invalid input $opponentInput")
+        }
 
-    val loses = mapOf(
-        "C" to "A",
-        "B" to "C",
-        "A" to "B",
-    )
-
-    val scores = mapOf(
-        "A" to 1,
-        "B" to 2,
-        "C" to 3,
-    )
-
-    return input.fold(0) { score, (opponentMove, result) ->
         score + when (result) {
-            "X" -> scores[wins[opponentMove]]!! + Outcome.Loose.score
-            "Y" -> scores[opponentMove]!! + Outcome.Draw.score
-            else -> scores[loses[opponentMove]]!! + Outcome.Win.score
+            "X" -> scores.getOrDefault(opponentMove.win, 0) + Outcome.Loose.score
+            "Y" -> scores.getOrDefault(opponentMove.name, 0) + Outcome.Draw.score
+            else -> scores.getOrDefault(opponentMove.lose, 0) + Outcome.Win.score
         }
     }
 }
 
 fun main() {
     val input = readInput()
-    println("Part1 score is ${part1(input)}!")
-    println("Part2 score is ${part2(input)}!")
+    println("Part1 score is ${part1(input)}")
+    println("Part2 score is ${part2(input)}")
 }
 
 fun readInput(): List<List<String>> {
